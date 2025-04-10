@@ -1,0 +1,49 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  build:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/test-ci.sh
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Docker Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      
+      - name: Build and Push
+        run: |
+          docker build -f docker/prod/Dockerfile \
+            -t ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:${{ github.sha }} \
+            -t ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:latest .
+          docker push --all-tags ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check
+      
+      - name: Deploy
+        run: |
+          ssh ${{ secrets.SSH_HOST }} "\
+            DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} \
+            TAG=${{ github.sha }} \
+            ./scripts/deploy-prod.sh ${{ github.sha }}"

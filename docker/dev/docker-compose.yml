@@ -9,7 +9,7 @@ services:
     env_file:
       - .env 
     volumes:
-      - ./data:/app/data  
+      - data:/app/data  
     environment:
       - STORAGE_FILE=/app/data/checks.json
     restart: unless-stopped
@@ -21,7 +21,7 @@ services:
     container_name: health-check-checker
     command: ["python", "-m", "app.checker"]
     volumes:
-      - ./data:/app/data
+      - data:/app/data
     env_file:
       - .env
     environment:

@@ -1,0 +1,45 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  build:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/test-ci.sh
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure Docker
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          
+      - name: Build and push
+        run: |
+          docker build -f docker/prod/Dockerfile \
+            -t ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:${{ github.sha }} \
+            -t ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:latest .
+          docker push --all-tags ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check
+          
+      - name: Deploy to production
+        run: |
+          scp docker/prod/docker-compose.yml ${{ secrets.SSH_HOST }}:/app/
+          ssh ${{ secrets.SSH_HOST }} "DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} TAG=${{ github.sha }} docker-compose -f /app/docker-compose.yml up -d"

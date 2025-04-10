@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  web:
+    image: ${DOCKER_HUB_USERNAME}/devops-health-check:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - data:/app/data
+    environment:
+      - FLASK_ENV=production
+      - STORAGE_FILE=/app/data/checks.json
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M  
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    # logging:
+    #   driver: json-file
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "3"
+
+  checker:
+    image: ${DOCKER_HUB_USERNAME}/devops-health-check:${TAG:-latest}
+    command: ["python", "-m", "app.checker"]
+    restart: unless-stopped
+    volumes:
+      - data:/app/data
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  health_data:
+
+# networks:
+#   default:
+#     driver: bridge
