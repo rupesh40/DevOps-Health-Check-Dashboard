@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  web:
+    build: 
+      context: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env 
+    volumes:
+      - ./data:/app/data  
+    environment:
+      - STORAGE_FILE=/app/data/checks.json
+    restart: unless-stopped
+    networks:
+      - health-net
+
+  checker:
+    build: .
+    container_name: health-check-checker
+    command: ["python", "-m", "app.checker"]
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    environment:
+      - STORAGE_FILE=/app/data/checks.json
+    depends_on:
+      - web
+    networks:
+      - health-net
+    restart: unless-stopped
+
+networks:
+  health-net:
+    driver: bridge
