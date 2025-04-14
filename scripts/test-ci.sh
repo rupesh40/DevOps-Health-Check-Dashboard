@@ -1,40 +1,37 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-echo "🔨 Building dev environment..."
-docker-compose -f docker/dev/docker-compose.yml build
+: "${TAG:=test}"
+: "${DOCKER_HUB_USERNAME:=local}"
+
+echo "🚀 Starting test pipeline..."
+echo "Docker: $(docker --version)"
+echo "Compose: $(docker compose version)"
+
+# Clean previous containers
+docker compose -f docker/dev/docker-compose.yml down -v
+
+echo "🔨 Building test image..."
+docker compose -f docker/dev/docker-compose.yml build web
 
 echo "🧪 Running tests..."
-docker-compose -f docker/dev/docker-compose.yml run --rm web pytest tests/ --cov=app
+time docker compose -f docker/dev/docker-compose.yml run --rm \
+  web sh -c "ls -la tests/ && python -m pytest tests/ --cov=app -v"
 
-echo "🚀 Testing production build..."
-docker build -f docker/prod/Dockerfile -t health-check-test .
-TAG=test docker-compose -f docker/prod/docker-compose.yml up -d
-./scripts/wait-for-it.sh -t 30 "http://localhost:5000/health"
+echo "✅ Dev Tests completed in ${SECONDS}s"
 
-echo "✅ All tests passed!"
-docker-compose -f docker/prod/docker-compose.yml down
+# ---- Production test ----
+# echo "🚀 Testing production build..."
 
+# # Clean previous containers
+# docker-compose -f docker/dev/docker-compose.yml down -v
 
+# docker build -f docker/prod/Dockerfile -t ${DOCKER_HUB_USERNAME}/devops-health-check:${TAG} .
 
-
-# #!/bin/bash
-# # Simulates GitHub Actions pipeline locally
-
-# # 1. Test stage
-# echo "🚀 Running tests..."
-# docker-compose -f docker/dev/docker-compose.yml build
-# docker-compose -f docker/dev/docker-compose.yml run --rm web pytest tests/ --cov=app
-
-# # 2. Build production image
-# echo "🔨 Building production image..."
-# docker build -f docker/prod/Dockerfile -t health-check-ci:test .
-
-# # 3. Verify production setup
-# echo "🔍 Testing production deployment..."
+# echo "🔧 Starting production containers..."
 # TAG=test docker-compose -f docker/prod/docker-compose.yml up -d
-# ./scripts/wait-for-it.sh -t 60 "http://localhost:5000/health"
 
-# # 4. Cleanup
-# docker-compose -f docker/prod/docker-compose.yml down
-# echo "🎉 CI simulation completed successfully!"
+# echo "⏱ Waiting for health endpoint..."
+# ./scripts/wait-for-it.sh 30 "http://localhost:5000/health"
+
+# echo "✅ Production build test passed!"

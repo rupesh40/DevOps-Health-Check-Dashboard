@@ -31,11 +31,15 @@ python -m app.run
 docker-compose up --build
 ```
 
-### API Documentation
-Endpoint	      Method	Description
-/health	          GET	    Get current health status
-/services	      POST	    Add new service
-/services/<name>  DELETE	Remove service
+## API Documentation
+
+### Endpoints
+
+| Endpoint                | Method | Description                      |
+|-------------------------|--------|----------------------------------|
+| `/health`               | GET    | Get current health status        |
+| `/services`             | POST   | Add new service                  |
+| `/services/<name>`      | DELETE | Remove service                   |
 
 CLI Usage
 ```bash

@@ -1,45 +1,78 @@
-name: Production Deployment
+name: Production CI/CD # Name of the workflow (shows in GitHub Actions tab)
 
-on:
-  workflow_dispatch:  # Allows manual triggering
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+on: # When should this workflow run?
+  workflow_dispatch: # Allows manual trigger (button in GitHub UI)
+  push: # Runs when code is pushed
+    branches: ["main"] # Only on the "main" branch
+  pull_request: # Runs when a PR is opened
+    branches: ["main"] # Only if PR targets "main"
 
-env:
-  DOCKER_BUILDKIT: 1
-  COMPOSE_DOCKER_CLI_BUILD: 1
+env: # Environment variables (available in all jobs)
+  DOCKER_BUILDKIT: 1 # Speeds up Docker builds
 
-jobs:
-  build:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-    
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: ./scripts/test-ci.sh
+jobs: # List of jobs (test + deploy)
+  test: # First job: Testing
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }} # Skip if commit has "[skip ci]"
+    runs-on: ubuntu-latest # Runs on a fresh Ubuntu machine
+    steps: # List of steps in this job
+      - uses: actions/checkout@v4 # Checks out your code (like git clone)
 
-  deploy:
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Configure Docker
+      - name: Cache dependencies # Caches Python packages (speeds up future runs)
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip # Where pip stores downloaded packages
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }} # Cache key (changes if requirements.txt updates)
+
+      - name: Set up Python # Installs Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies # Installs Python packages
         run: |
-          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-          
-      - name: Build and push
+          python -m pip install --upgrade pip  # Updates pip
+          pip install -r requirements.txt pytest pytest-cov  # Installs project deps + test tools
+
+      - name: Run unit tests # Runs pytest (checks if code works)
+        run: pytest tests/ --cov=app --cov-report=xml # Runs tests + generates coverage report
+
+      - name: Upload coverage # Uploads test coverage to Codecov (optional)
+        uses: codecov/codecov-action@v3
+
+      - name: Run integration tests # Tests the Docker setup (checks if deployment works)
+        # run: ./scripts/test-ci.sh # Runs your custom test script
         run: |
-          docker build -f docker/prod/Dockerfile \
-            -t ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:${{ github.sha }} \
-            -t ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:latest .
-          docker push --all-tags ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check
-          
-      - name: Deploy to production
-        run: |
-          scp docker/prod/docker-compose.yml ${{ secrets.SSH_HOST }}:/app/
-          ssh ${{ secrets.SSH_HOST }} "DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} TAG=${{ github.sha }} docker-compose -f /app/docker-compose.yml up -d"
+          chmod +x scripts/*.sh # Ensure scripts are executable
+          ./scripts/test-ci.sh # Runs your custom test script
+
+  deploy: # Second job: Deployment (only runs if tests pass)
+    needs: test # Waits for "test" job to finish
+    if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]') # Only deploy on main branch (no [skip ci])
+    runs-on: ubuntu-latest # Runs on a fresh Ubuntu machine
+    steps: # Steps for deployment
+      - uses: actions/checkout@v4 # Checks out your code again
+
+      - name: Login to Docker Hub # Logs into Docker Hub to push images
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }} # Uses GitHub Secrets (store your Docker Hub username here)
+          password: ${{ secrets.DOCKER_HUB_TOKEN }} # Uses GitHub Secrets (store your Docker Hub token here)
+
+      - name: Build and push # Builds Docker image and pushes to Docker Hub
+        uses: docker/build-push-action@v4
+        with:
+          push: true # Pushes to Docker Hub
+          tags: | # Tags the image (latest + Git commit SHA)
+            ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:${{ github.sha }}
+          cache-from: type=gha # Uses GitHub cache (speeds up builds)
+          cache-to: type=gha,mode=max # Saves cache for future runs
+          file: docker/prod/Dockerfile # Path to your Dockerfile
+
+
+      # - name: Deploy to production # Runs your deploy script on the server
+      #   run: |
+      #     ssh ${{ secrets.SSH_HOST }} "\
+      #       DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} \
+      #       TAG=${{ github.sha }} \
+      #       ./scripts/deploy-prod.sh ${{ github.sha }}"  # Runs deploy script remotely

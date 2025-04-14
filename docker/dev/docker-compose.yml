@@ -1,37 +1,44 @@
-version: '3.9'
-
 services:
   web:
     build: 
-      context: .
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
+      target: builder  # Stop at builder stage for tests
     ports:
       - "5000:5000"
-    env_file:
-      - .env 
     volumes:
       - data:/app/data  
+      - pytest_cache:/app/.pytest_cache  # Cache between runs
     environment:
       - STORAGE_FILE=/app/data/checks.json
-    restart: unless-stopped
+      - FLASK_ENV=production
+      - CHECK_INTERVAL=60
+
     networks:
       - health-net
 
   checker:
-    build: .
+    build:
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
     container_name: health-check-checker
     command: ["python", "-m", "app.checker"]
     volumes:
       - data:/app/data
-    env_file:
-      - .env
     environment:
       - STORAGE_FILE=/app/data/checks.json
+      - FLASK_ENV=production
+      - CHECK_INTERVAL=60
+
     depends_on:
       - web
     networks:
       - health-net
-    restart: unless-stopped
 
 networks:
   health-net:
     driver: bridge
+
+volumes:
+  data:
+  pytest_cache:
