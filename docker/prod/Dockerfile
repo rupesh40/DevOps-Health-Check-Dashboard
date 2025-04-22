@@ -10,17 +10,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m appuser && \
     mkdir -p /app /home/appuser/.local && \
     chown appuser:appuser /app /home/appuser/.local
-     
+
 WORKDIR /app
 
-# Install dependencies
+# Cache dependencies
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt gunicorn
+RUN pip install --user --no-cache-dir -r requirements.txt pytest pytest-cov
 
-# Copy application - more selective than dev
-COPY app/ app/
-COPY migrations/ migrations/
-COPY *.py ./
+COPY . .
 
 # Stage 2: Runtime
 FROM python:3.12-slim
@@ -33,18 +30,9 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder --chown=appuser /home/appuser/.local /home/appuser/.local
 COPY --from=builder --chown=appuser /app /app
 
-# Explicitly set Python path 
-ENV PYTHONPATH=/app 
-
+ENV PATH=/home/appuser/.local/bin:$PATH
 WORKDIR /app
 USER appuser
 
-# Verify file structure
-RUN ls -la /app && \
-    ls -la /app/app  # Debugging line
-
-HEALTHCHECK --interval=15s --timeout=3s --start-period=45s --retries=5 \
-    CMD curl -f http://localhost:5000/health || exit 1
-
-# Production-grade server
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:create_app"]  # Adjust 'create_app' to your factory function
+HEALTHCHECK --interval=30s --timeout=5s CMD curl -f http://localhost:5000/health
+CMD ["python", "-m", "run"]

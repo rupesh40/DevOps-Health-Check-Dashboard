@@ -7,12 +7,13 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - data:/app/data  
+      - ../../data:/app/data
       - pytest_cache:/app/.pytest_cache  # Cache between runs
     environment:
       - STORAGE_FILE=/app/data/checks.json
-      - FLASK_ENV=production
+      - FLASK_ENV=development
       - CHECK_INTERVAL=60
+    
 
     networks:
       - health-net
@@ -21,13 +22,14 @@ services:
     build:
       context: ../..
       dockerfile: docker/dev/Dockerfile
+      target: builder
     container_name: health-check-checker
     command: ["python", "-m", "app.checker"]
     volumes:
-      - data:/app/data
+      - ../../data:/app/data
     environment:
       - STORAGE_FILE=/app/data/checks.json
-      - FLASK_ENV=production
+      - FLASK_ENV=development
       - CHECK_INTERVAL=60
 
     depends_on:

@@ -36,4 +36,4 @@ WORKDIR /app
 USER appuser
 
 HEALTHCHECK --interval=30s --timeout=5s CMD curl -f http://localhost:5000/health
-CMD ["python", "-m", "app.run"]
+CMD ["python", "-m", "run"]

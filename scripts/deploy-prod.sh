@@ -4,7 +4,7 @@ set -eo pipefail  # Exit on error + show logs
 TAG=${1:-latest}  # Gets Git commit SHA (or uses "latest")
 DOCKER_USER=${DOCKER_HUB_USERNAME}  # Docker Hub username
 SERVICE="devops-health-check"  # Your app name
-COMPOSE_FILE="/app/docker-compose.prod.yml"  # Path to compose file
+COMPOSE_FILE="/docker/prod/docker-compose.yml"  # Path to compose file
 
 echo "🚀 Deploying $SERVICE:$TAG"
 

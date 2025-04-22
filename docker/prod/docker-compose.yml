@@ -1,15 +1,15 @@
 services:
   web:
-    image: ${DOCKER_HUB_USERNAME}/devops-health-check:${TAG:-latest}
+    image: ${DOCKER_HUB_USERNAME}/devops-health-check:v1.0  # Explicit tag
     restart: unless-stopped
     ports:
       - "5000:5000"
     volumes:
       - data:/app/data
-      - pytest_cache:/app/.pytest_cache  # Cache between runs
     environment:
-      - FLASK_ENV=production
       - STORAGE_FILE=/app/data/checks.json
+      - FLASK_ENV=production
+      - CHECK_INTERVAL=60
     deploy:
       resources:
         limits:
@@ -20,11 +20,12 @@ services:
       interval: 10s
       timeout: 2s
       retries: 3
-      start_period: 30s      
-
+      start_period: 30s
+    networks:
+      - app_network
 
   checker:
-    image: ${DOCKER_HUB_USERNAME}/devops-health-check:${TAG:-latest}
+    image: ${DOCKER_HUB_USERNAME}/devops-health-check:v1.0  # Same tag as web
     command: ["python", "-m", "app.checker"]
     restart: unless-stopped
     volumes:
@@ -32,7 +33,12 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    networks:
+      - app_network
 
 volumes:
   data:
-  pytest_cache:
+
+networks:
+  app_network:
+    driver: bridge

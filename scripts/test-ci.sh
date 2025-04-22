@@ -9,13 +9,13 @@ echo "Docker: $(docker --version)"
 echo "Compose: $(docker compose version)"
 
 # Clean previous containers
-docker compose -f docker/dev/docker-compose.yml down -v
+docker compose -f docker/dev/docker-compose.base.yml down -v
 
 echo "🔨 Building test image..."
-docker compose -f docker/dev/docker-compose.yml build web
+docker compose -f docker/dev/docker-compose.base.yml build web
 
 echo "🧪 Running tests..."
-time docker compose -f docker/dev/docker-compose.yml run --rm \
+time docker compose -f docker/dev/docker-compose.base.yml run --rm \
   web sh -c "ls -la tests/ && python -m pytest tests/ --cov=app -v"
 
 echo "✅ Dev Tests completed in ${SECONDS}s"

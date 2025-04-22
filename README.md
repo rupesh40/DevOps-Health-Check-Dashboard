@@ -47,7 +47,18 @@ CLI Usage
 python cli.py list
 
 # Add service
-python cli.py add "Service Name" "http://service.url"
+python cli.py add "Service Name" "http://service.url" https://github.com/
+```
+
+CURL Usage
+```bash
+# Add service
+curl -Method POST http://localhost:5000/services `
+     -ContentType "application/json" `
+     -Body '{"name": "Facebook", "url": "https://www.facebook.com/"}'
+
+# Remove service
+curl -Method DELETE http://localhost:5000/services/Facebook
 ```
 
 # Configuration
