@@ -31,11 +31,15 @@ python -m app.run
 docker-compose up --build
 ```
 
-### API Documentation
-Endpoint	      Method	Description
-/health	          GET	    Get current health status
-/services	      POST	    Add new service
-/services/<name>  DELETE	Remove service
+## API Documentation
+
+### Endpoints
+
+| Endpoint                | Method | Description                      |
+|-------------------------|--------|----------------------------------|
+| `/health`               | GET    | Get current health status        |
+| `/services`             | POST   | Add new service                  |
+| `/services/<name>`      | DELETE | Remove service                   |
 
 CLI Usage
 ```bash
@@ -43,7 +47,18 @@ CLI Usage
 python cli.py list
 
 # Add service
-python cli.py add "Service Name" "http://service.url"
+python cli.py add "Service Name" "http://service.url" https://github.com/
+```
+
+CURL Usage
+```bash
+# Add service
+curl -Method POST http://localhost:5000/services `
+     -ContentType "application/json" `
+     -Body '{"name": "Facebook", "url": "https://www.facebook.com/"}'
+
+# Remove service
+curl -Method DELETE http://localhost:5000/services/Facebook
 ```
 
 # Configuration

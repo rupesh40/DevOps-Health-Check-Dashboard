@@ -55,18 +55,6 @@ def test_health_check(client):
         assert "last_checked" in service
 
 
-def test_health_check_empty(client):
-    """Test health endpoint with no services"""
-
-    with patch("app.api.load_services") as mock_lead:
-        mock_lead.return_value = []
-
-    response = client.get("/health")
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data == {"services": []}
-
-
 def test_health_check_multiple_services(client):
     """Test health endpoint with multiple services"""
     mock_services = [

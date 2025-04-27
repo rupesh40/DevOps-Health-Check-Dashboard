@@ -1,0 +1,44 @@
+services:
+  web:
+    image: ${DOCKER_HUB_USERNAME}/devops-health-check:v1.0  # Explicit tag
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - data:/app/data
+    environment:
+      - STORAGE_FILE=/app/data/checks.json
+      - FLASK_ENV=production
+      - CHECK_INTERVAL=60
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
+    networks:
+      - app_network
+
+  checker:
+    image: ${DOCKER_HUB_USERNAME}/devops-health-check:v1.0  # Same tag as web
+    command: ["python", "-m", "app.checker"]
+    restart: unless-stopped
+    volumes:
+      - data:/app/data
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - app_network
+
+volumes:
+  data:
+
+networks:
+  app_network:
+    driver: bridge

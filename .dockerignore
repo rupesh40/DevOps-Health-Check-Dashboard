@@ -1,0 +1,14 @@
+.git
+app/__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv
+.venv
+data
+diagrams
+docker/
+README.md
+.vscode/
+.pytest_cache/
