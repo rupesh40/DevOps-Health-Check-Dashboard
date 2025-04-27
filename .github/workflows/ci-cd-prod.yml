@@ -65,8 +65,6 @@ jobs: # List of jobs (test + deploy)
           tags: | # Tags the image (latest + Git commit SHA)
             ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/devops-health-check:${{ github.sha }}
-          cache-from: type=gha # Uses GitHub cache (speeds up builds)
-          cache-to: type=gha,mode=max # Saves cache for future runs
           file: docker/prod/Dockerfile # Path to your Dockerfile
 
 
