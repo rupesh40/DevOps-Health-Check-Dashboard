@@ -3,16 +3,16 @@ name: Production CI/CD # Name of the workflow (shows in GitHub Actions tab)
 on: # When should this workflow run?
   workflow_dispatch: # Allows manual trigger (button in GitHub UI)
   push: # Runs when code is pushed
-    branches: ["main"] # Only on the "main" branch
+    branches: ["master"] # Only on the "master" branch
   pull_request: # Runs when a PR is opened
-    branches: ["main"] # Only if PR targets "main"
+    branches: ["master"] # Only if PR targets "master"
 
 env: # Environment variables (available in all jobs)
   DOCKER_BUILDKIT: 1 # Speeds up Docker builds
 
 jobs: # List of jobs (test + deploy)
   test: # First job: Testing
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }} # Skip if commit has "[skip ci]"
+    # if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }} # Skip if commit has "[skip ci]"
     runs-on: ubuntu-latest # Runs on a fresh Ubuntu machine
     steps: # List of steps in this job
       - uses: actions/checkout@v4 # Checks out your code (like git clone)
@@ -47,7 +47,7 @@ jobs: # List of jobs (test + deploy)
 
   deploy: # Second job: Deployment (only runs if tests pass)
     needs: test # Waits for "test" job to finish
-    if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]') # Only deploy on main branch (no [skip ci])
+    # if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]') # Only deploy on main branch (no [skip ci])
     runs-on: ubuntu-latest # Runs on a fresh Ubuntu machine
     steps: # Steps for deployment
       - uses: actions/checkout@v4 # Checks out your code again

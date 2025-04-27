@@ -103,7 +103,7 @@ Stage  Job ID  Workflow Name  Events
 ### 2. Run the Entire Pipeline
 
 ```bash
-act --secret-file .secrets
+act --secret-file .secrets -W .github/workflows/ci-cd-local.yml 
 ```
 
 Simulates both test and deploy jobs using secrets from `.secrets`.
