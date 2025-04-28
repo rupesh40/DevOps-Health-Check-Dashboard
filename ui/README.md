@@ -8,7 +8,8 @@ A React-based frontend for monitoring the status of your services, connecting to
 
 - Real-time service status monitoring
 - Add/remove services from the dashboard
-- Automatic refresh every 30 seconds
+- Manual refresh control
+- Individual service health checks
 - Visual status indicators (UP/DOWN)
 - Responsive design
 - Dark/Light theme support
@@ -73,6 +74,8 @@ You can configure the following environment variables:
 Ensure your backend is running and accessible at the URL specified in your .env file. By default, it expects the backend at http://localhost:5000.
 
 ## Project Structure
+
+```bash
 ui/
 ├── public/              # Static files
 ├── src/
@@ -85,15 +88,18 @@ ui/
 ├── .env                 # Environment variables
 ├── Dockerfile           # Production Docker configuration
 └── nginx.conf           # Nginx configuration
+```
 
 ## Troubleshooting
-CORS Errors
-If you see CORS errors:
+**CORS Errors** 
+- Ensure your backend is running
+- Verify the REACT_APP_API_URL in your .env file
+- Confirm your Flask backend has CORS enabled
 
-Ensure your backend is running
-Verify the REACT_APP_API_URL in your .env file is correct
-
-Consider adding CORS support to your Flask backend
+**Service Checks Not Working**
+- Verify the backend has the new /services/<name>/check endpoint
+- Check browser console for errors
+- Ensure service URLs are correct
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

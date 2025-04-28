@@ -22,8 +22,8 @@ A **production-ready** monitoring solution for DevOps teams to track service hea
   - Responsive design
 
 - **CI/CD with GitHub Actions**:
-  This project uses GitHub Actions for continuous integration (CI) and continuous deployment (CD). The CI/CD pipeline automates the process of building, testing, and deploying the application.
-  The CI pipeline is defined in `.github/workflows/ci-cd.yml`. You can find further documentation in `.github/workflows/readme.md`.
+  - This project uses GitHub Actions for continuous    integration (CI) and continuous deployment (CD). The CI/CD pipeline automates the process of building, testing, and deploying the application.
+  - The CI pipeline is defined in `.github/workflows/ci-cd. yml`. You can find further documentation in `.github/ workflows/readme.md`.
 
 *\[Detailed UI documentation available in `ui/README.md`\]*
 
@@ -47,6 +47,7 @@ python -m app.run
 ### Docker Deployment: Full System (Backend + Frontend)
 
 ```bash
+cd docker/dev/
 docker-compose -f docker-compose.base.yml -f docker-compose.override.yml up --build
 ```
 
