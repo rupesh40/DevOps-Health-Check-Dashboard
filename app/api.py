@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from app.storage import load_services, save_services
 from app.logger import get_logger
+from app.checker import check_service
+from datetime import datetime, UTC
 import json
 
 logger = get_logger("api")
@@ -71,4 +73,33 @@ def delete_service(name):
 
     except Exception as e:
         logger.error(f"Error deleting service: {e}", exc_info=True)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route("/services/<string:name>/check", methods=["GET"])
+def check_single_service(name):
+    try:
+        services = load_services()
+        service = next((s for s in services if s["name"] == name), None)
+        
+        if not service:
+            return jsonify({"error": f"Service '{name}' not found."}), 404
+            
+        # Perform the health check
+        is_up = check_service(service["url"])
+        status = "UP" if is_up else "DOWN"
+        
+        # Update the service status
+        service["status"] = status
+        service["last_checked"] = datetime.now(UTC).isoformat()
+        save_services(services)
+        
+        return jsonify({
+            "name": name,
+            "status": status,
+            "last_checked": service["last_checked"]
+        })
+        
+    except Exception as e:
+        logger.error(f"Error checking service {name}: {e}", exc_info=True)
         return jsonify({"error": "Internal server error"}), 500

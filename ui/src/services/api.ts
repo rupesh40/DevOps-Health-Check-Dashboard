@@ -21,3 +21,8 @@ export const addService = async (service: Omit<Service, 'status' | 'last_checked
 export const deleteService = async (name: string): Promise<void> => {
   await axios.delete(`${API_BASE_URL}/services/${name}`);
 };
+
+export const checkSingleService = async (name: string): Promise<Service> => {
+  const response = await axios.get(`${API_BASE_URL}/services/${name}/check`);
+  return response.data;
+};

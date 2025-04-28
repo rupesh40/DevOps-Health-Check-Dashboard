@@ -1,15 +1,16 @@
 import React from 'react';
 import { Service } from '../services/api';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Chip } from '@mui/material';
-import { Delete, Refresh } from '@mui/icons-material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Chip, Tooltip } from '@mui/material';
+import { Delete, Refresh, HealthAndSafety } from '@mui/icons-material';
 
 interface ServiceListProps {
   services: Service[];
   onDelete: (name: string) => void;
   onRefresh: () => void;
+  onCheckService: (name: string) => void;
 }
 
-const ServiceList: React.FC<ServiceListProps> = ({ services, onDelete, onRefresh }) => {
+const ServiceList: React.FC<ServiceListProps> = ({ services, onDelete, onRefresh, onCheckService }) => {
   return (
     <TableContainer component={Paper}>
       <Table>
@@ -20,9 +21,11 @@ const ServiceList: React.FC<ServiceListProps> = ({ services, onDelete, onRefresh
             <TableCell>Status</TableCell>
             <TableCell>Last Checked</TableCell>
             <TableCell align="right">
-              <IconButton onClick={onRefresh} color="primary">
-                <Refresh />
-              </IconButton>
+              <Tooltip title="Refresh All">
+                <IconButton onClick={onRefresh} color="primary">
+                  <Refresh />
+                </IconButton>
+              </Tooltip>
             </TableCell>
           </TableRow>
         </TableHead>
@@ -39,9 +42,16 @@ const ServiceList: React.FC<ServiceListProps> = ({ services, onDelete, onRefresh
               </TableCell>
               <TableCell>{service.last_checked ? new Date(service.last_checked).toLocaleString() : 'Never'}</TableCell>
               <TableCell align="right">
-                <IconButton onClick={() => onDelete(service.name)} color="error">
-                  <Delete />
-                </IconButton>
+                <Tooltip title="Check Health">
+                  <IconButton onClick={() => onCheckService(service.name)} color="primary">
+                    <HealthAndSafety />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete">
+                  <IconButton onClick={() => onDelete(service.name)} color="error">
+                    <Delete />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}
