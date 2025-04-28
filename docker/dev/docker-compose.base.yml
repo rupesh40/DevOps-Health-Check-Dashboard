@@ -1,5 +1,5 @@
 services:
-  web:
+  backend:
     build: 
       context: ../..
       dockerfile: docker/dev/Dockerfile
@@ -13,8 +13,7 @@ services:
       - STORAGE_FILE=/app/data/checks.json
       - FLASK_ENV=development
       - CHECK_INTERVAL=60
-    
-
+    hostname: backend  # Explicit hostname  
     networks:
       - health-net
 
@@ -31,11 +30,21 @@ services:
       - STORAGE_FILE=/app/data/checks.json
       - FLASK_ENV=development
       - CHECK_INTERVAL=60
-
     depends_on:
-      - web
+      - backend
     networks:
       - health-net
+
+  frontend:
+    build:
+      context: ../../ui
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - health-net    
 
 networks:
   health-net:

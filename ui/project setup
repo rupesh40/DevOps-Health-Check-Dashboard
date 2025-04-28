@@ -1,0 +1,25 @@
+Step 1: Create the React App Structure
+First, let's create the directory structure inside your project:
+
+devops-health-check-dashboard/
+└── ui/
+    ├── public/
+    ├── src/
+    │   ├── components/
+    │   ├── pages/
+    │   ├── services/
+    │   ├── styles/
+    │   ├── App.jsx
+    │   ├── index.jsx
+    │   └── ... (other React files)
+    ├── Dockerfile
+    ├── package.json
+    └── ... (other config files)
+
+
+Step 2: Create the React App
+Run these commands from your project root:
+
+npx create-react-app ui --template typescript
+cd ui
+npm install axios react-router-dom @mui/material @emotion/react @emotion/styled @mui/icons-material chart.js react-chartjs-2

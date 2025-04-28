@@ -15,7 +15,7 @@ WORKDIR /app
 
 # Cache dependencies separately
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt pytest pytest-cov
+RUN pip install --user --no-cache-dir -r requirements.txt flask-cors pytest pytest-cov
 
 # Copy ALL application files 
 COPY . .
