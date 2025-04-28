@@ -21,6 +21,10 @@ A **production-ready** monitoring solution for DevOps teams to track service hea
   - Visual status indicators (UP/DOWN)
   - Responsive design
 
+- **CI/CD with GitHub Actions**:
+  This project uses GitHub Actions for continuous integration (CI) and continuous deployment (CD). The CI/CD pipeline automates the process of building, testing, and deploying the application.
+  The CI pipeline is defined in `.github/workflows/ci-cd.yml`. You can find further documentation in `.github/workflows/readme.md`.
+
 *\[Detailed UI documentation available in `ui/README.md`\]*
 
 ---
@@ -78,12 +82,12 @@ python cli.py add "Service Name" "http://service.url"
 
 ```bash
 # Add service
-curl -Method POST http://localhost:5000/services `
-     -ContentType "application/json" `
-     -Body '{"name": "Facebook", "url": "https://www.facebook.com/"}'
+curl -X POST http://localhost:5000/services \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Facebook", "url": "https://www.facebook.com/"}'
 
 # Remove service
-curl -Method DELETE http://localhost:5000/services/Facebook
+curl -X DELETE http://localhost:5000/services/Facebook
 ```
 
 ---
@@ -155,6 +159,12 @@ devops-health-check-dashboard/
 │   ├── Dockerfile             # Frontend Dockerfile
 │   └── README.md              # Frontend-specific docs
 ```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
