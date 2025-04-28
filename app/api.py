@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from app.storage import load_services, save_services
 from app.logger import get_logger
 import json
@@ -6,6 +7,7 @@ import json
 logger = get_logger("api")
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route("/health", methods=["GET"])

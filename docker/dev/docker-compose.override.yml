@@ -1,3 +1,3 @@
 services:
-  web:
+  backend:
     command: ["python", "-m", "run"]
